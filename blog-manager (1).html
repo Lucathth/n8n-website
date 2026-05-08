@@ -42,7 +42,7 @@
 
     .wrapper {
       width: 100%;
-      max-width: 1080px;
+      max-width: 1100px;
       position: relative;
       z-index: 1;
       animation: fadeUp 0.4s ease both;
@@ -77,6 +77,7 @@
       border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 10px var(--accent);
+      flex-shrink: 0;
     }
 
     .logo-text {
@@ -168,7 +169,7 @@
       align-items: start;
     }
 
-    @media (max-width: 680px) {
+    @media (max-width: 720px) {
       .panels { grid-template-columns: 1fr; }
     }
 
@@ -215,64 +216,94 @@
     .panel-wf {
       font-size: 12px;
       color: var(--text-muted);
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       padding-left: 18px;
       font-family: 'DM Mono', monospace;
     }
 
-    /* ── INFO BOX ── */
-    .info-box {
-      border-radius: 8px;
-      padding: 14px 16px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      line-height: 1.8;
-      white-space: pre-wrap;
+    /* ── STRUCTURED FORM FIELDS ── */
+    .form-fields {
+      margin-bottom: 20px;
     }
 
-    .info-box.blue {
-      background: rgba(96, 200, 240, 0.06);
-      border: 1px solid rgba(96, 200, 240, 0.2);
-      color: #8dd8ef;
-    }
-
-    .info-box.green {
-      background: rgba(200, 240, 96, 0.06);
-      border: 1px solid rgba(200, 240, 96, 0.2);
-      color: #b0d870;
-    }
-
-    .info-box-title {
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    .form-row {
+      display: grid;
+      grid-template-columns: 148px 1fr;
+      align-items: start;
+      gap: 10px;
       margin-bottom: 8px;
-      opacity: 0.7;
     }
 
-    /* ── TEXTAREA ── */
-    textarea {
-      width: 100%;
+    .form-row-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: right;
+      padding-top: 9px;
+      line-height: 1.3;
+    }
+
+    .form-row input[type="text"],
+    .form-row textarea {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
+      border-radius: 6px;
+      padding: 8px 12px;
       font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      line-height: 1.7;
+      font-size: 12px;
       color: var(--text);
-      resize: vertical;
-      min-height: 200px;
       outline: none;
       transition: border-color 0.2s;
-      margin-bottom: 16px;
+      width: 100%;
     }
 
-    textarea::placeholder { color: #444; }
+    .form-row input[type="text"]::placeholder,
+    .form-row textarea::placeholder { color: #3a3a3a; }
 
-    #create-message:focus { border-color: var(--accent-blue); }
-    #edit-message:focus   { border-color: var(--accent); }
+    .panel-blue .form-row input[type="text"]:focus,
+    .panel-blue .form-row textarea:focus { border-color: var(--accent-blue); }
+
+    .panel-green .form-row input[type="text"]:focus,
+    .panel-green .form-row textarea:focus { border-color: var(--accent); }
+
+    .form-row textarea {
+      resize: vertical;
+      min-height: 72px;
+      line-height: 1.6;
+    }
+
+    .form-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 10px;
+      padding-left: 158px;
+    }
+
+    .form-divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .form-divider-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .field-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin: 2px 0 10px 158px;
+      opacity: 0.65;
+      line-height: 1.5;
+    }
 
     /* ── BUTTONS ── */
     .btn {
@@ -370,6 +401,95 @@
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── PROGRESS BAR ── */
+    .progress-section {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .progress-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .progress-meta {
+      display: flex;
+      gap: 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .progress-meta span { min-width: 36px; text-align: right; }
+
+    .progress-track {
+      background: var(--border);
+      border-radius: 4px;
+      height: 5px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+
+    .progress-fill.blue {
+      background: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(96, 200, 240, 0.5);
+    }
+
+    .progress-fill.green {
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(200, 240, 96, 0.5);
+    }
+
+    .progress-fill.complete {
+      transition: width 0.4s ease;
+    }
+
+    .progress-done-msg {
+      margin-top: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      display: none;
+    }
+
+    .progress-done-msg.blue { color: var(--accent-blue); }
+    .progress-done-msg.green { color: var(--accent); }
+
+    .progress-waiting {
+      margin-top: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: 0.6;
+      display: none;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 0.8; }
+    }
   </style>
 </head>
 <body>
@@ -402,68 +522,117 @@
       <div class="panels">
 
         <!-- Panel Links: Blog erstellen -->
-        <div class="panel">
+        <div class="panel panel-blue">
           <div class="panel-header">
             <div class="panel-dot blue"></div>
             <span class="panel-title">Blog erstellen</span>
           </div>
           <p class="panel-wf">→ Blog landet als Draft in Wordpress Posts</p>
 
-          <div class="info-box blue"><div class="info-box-title">📋 Template</div>BLOG-THEMA:
-FOKUS-KEYWORD:
-SEKUNDÄRE KEYWORDS:
-ZIELGRUPPEN-FOKUS:
-ANGLE:
-INTERNE LINKS:
-BESONDERE HINWEISE:</div>
-
-          <label class="field-label">Anweisung</label>
-          <textarea
-            id="create-message"
-            placeholder="BLOG-THEMA: ERP-Integration im Mittelstand
-FOKUS-KEYWORD: ERP-Integration
-SEKUNDÄRE KEYWORDS: Middleware, Schnittstellen
-ZIELGRUPPEN-FOKUS: IT-Leiter im Mittelstand
-ANGLE: Praxisnah mit Checkliste
-INTERNE LINKS: /erp-einfuehrung
-BESONDERE HINWEISE: Ton sachlich, ca. 1500 Wörter"
-          ></textarea>
+          <div class="form-fields">
+            <div class="form-row">
+              <span class="form-row-label">Blog-Thema</span>
+              <input type="text" id="c-thema" placeholder="ERP-Integration im Mittelstand">
+            </div>
+            <div class="form-row">
+              <span class="form-row-label">Fokus-Keyword</span>
+              <input type="text" id="c-keyword" placeholder="ERP-Integration">
+            </div>
+            <div class="form-row">
+              <span class="form-row-label">Sek. Keywords</span>
+              <input type="text" id="c-sek" placeholder="Middleware, Schnittstellen">
+            </div>
+            <div class="form-row">
+              <span class="form-row-label">Zielgruppe</span>
+              <input type="text" id="c-zielgruppe" placeholder="IT-Leiter im Mittelstand">
+            </div>
+            <div class="form-row">
+              <span class="form-row-label">Angle</span>
+              <input type="text" id="c-angle" placeholder="Praxisnah mit Checkliste">
+            </div>
+            <div class="form-row">
+              <span class="form-row-label">Interne Links</span>
+              <input type="text" id="c-links" placeholder="/erp-einfuehrung, /blog/xyz">
+            </div>
+            <div class="form-row">
+              <span class="form-row-label">Bes. Hinweise</span>
+              <textarea id="c-hinweise" placeholder="Ton sachlich, ca. 1500 Wörter"></textarea>
+            </div>
+          </div>
 
           <button class="btn btn-blue" id="create-btn" onclick="sendCreate()">
             <span class="spinner" id="create-spinner"></span>
             <span id="create-label">Absenden</span>
           </button>
           <div class="status" id="create-status"></div>
+
+          <div class="progress-section" id="create-progress" style="display:none">
+            <div class="progress-header">
+              <span class="progress-label">Workflow läuft</span>
+              <div class="progress-meta">
+                <span id="create-elapsed">0:00</span>
+                <span id="create-pct">0%</span>
+              </div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill blue" id="create-bar"></div>
+            </div>
+            <div class="progress-waiting" id="create-waiting">Warte auf Abschluss-Signal...</div>
+            <div class="progress-done-msg blue" id="create-done">✓ Workflow abgeschlossen</div>
+          </div>
         </div>
 
         <!-- Panel Rechts: Blog bearbeiten -->
-        <div class="panel">
+        <div class="panel panel-green">
           <div class="panel-header">
             <div class="panel-dot green"></div>
             <span class="panel-title">Blog bearbeiten</span>
           </div>
-          <p class="panel-wf">→ Blog wird direkt bearbeitet in Wordpress zurückgegeben</p>
+          <p class="panel-wf">→ Blog wird direkt in Wordpress bearbeitet</p>
 
-          <div class="info-box green"><div class="info-box-title">💡 Hinweis</div>Starte mit:
-Titel: "Titel des Blogs"
-oder
-ID: "Blog-ID"
+          <div class="form-fields">
+            <div class="form-row">
+              <span class="form-row-label">Titel</span>
+              <input type="text" id="e-titel" placeholder='ERP-Integration: Echtzeit-Bestandsabgleich'>
+            </div>
+            <div class="form-row">
+              <span class="form-row-label">ID</span>
+              <input type="text" id="e-id" placeholder="1234">
+            </div>
+            <p class="field-hint">ℹ Nur Titel ODER ID ausfüllen – nicht beide</p>
 
-Beschreibe im Anschluss in welchem Bereich was geändert werden soll.</div>
+            <div class="form-divider">
+              <div class="form-divider-line"></div>
+              <span class="form-divider-text">Änderung</span>
+              <div class="form-divider-line"></div>
+            </div>
 
-          <label class="field-label">Anweisung</label>
-          <textarea
-            id="edit-message"
-            placeholder='Titel: "ERP-Integration: Echtzeit-Bestandsabgleich"
-
-Entferne im Fazit den SEO-Meta-Block und strukturiere den Absatz mit Leerzeilen.'
-          ></textarea>
+            <div class="form-row">
+              <span class="form-row-label">Änderung</span>
+              <textarea id="e-aenderung" placeholder="Entferne im Fazit den SEO-Meta-Block und strukturiere den Absatz mit Leerzeilen." style="min-height:100px"></textarea>
+            </div>
+          </div>
 
           <button class="btn btn-green" id="edit-btn" onclick="sendEdit()">
             <span class="spinner" id="edit-spinner"></span>
             <span id="edit-label">Absenden</span>
           </button>
           <div class="status" id="edit-status"></div>
+
+          <div class="progress-section" id="edit-progress" style="display:none">
+            <div class="progress-header">
+              <span class="progress-label">Workflow läuft</span>
+              <div class="progress-meta">
+                <span id="edit-elapsed">0:00</span>
+                <span id="edit-pct">0%</span>
+              </div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill green" id="edit-bar"></div>
+            </div>
+            <div class="progress-waiting" id="edit-waiting">Warte auf Abschluss-Signal...</div>
+            <div class="progress-done-msg green" id="edit-done">✓ Workflow abgeschlossen</div>
+          </div>
         </div>
 
       </div>
@@ -472,72 +641,224 @@ Entferne im Fazit den SEO-Meta-Block und strukturiere den Absatz mit Leerzeilen.
   </div>
 
   <script>
-    // ── KONFIGURATION ─────────────────────────────────────────
-    const PASSWORT       = "n8n-umantis";        // Passwort ändern
-    const WEBHOOK_EDIT   = "https://n8n.srv1569251.hstgr.cloud/webhook-test/29707833-190c-454b-9cea-5c1f508aed1b"; // Blog bearbeiten → Workflow 1
-    const WEBHOOK_CREATE = "https://n8n.srv1569251.hstgr.cloud/webhook-test/ae624413-a72c-40d6-ab64-7f538509df78"; // Blog erstellen  → Workflow 2
-    // ─────────────────────────────────────────────────────────
+    // Kein Klartext-Passwort und keine Webhook-URLs im Quellcode.
+    // Alle Credentials liegen in Netlify-Umgebungsvariablen (siehe Setup-Anleitung).
 
+    let apiToken = null;
+    const progressState = {};
+
+    // ── LOGIN ─────────────────────────────────────────────────
     document.getElementById('password').addEventListener('keydown', e => {
       if (e.key === 'Enter') login();
     });
 
-    function login() {
+    async function login() {
       const pw = document.getElementById('password').value;
-      if (pw === PASSWORT) {
-        document.getElementById('login-view').style.display = 'none';
-        document.getElementById('app-view').style.display = 'block';
-        document.getElementById('login-error').textContent = '';
-      } else {
-        document.getElementById('login-error').textContent = 'Falsches Passwort.';
-        document.getElementById('password').value = '';
-        document.getElementById('password').focus();
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = '';
+      try {
+        const res = await fetch('/.netlify/functions/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          apiToken = data.token;
+          document.getElementById('login-view').style.display = 'none';
+          document.getElementById('app-view').style.display  = 'block';
+        } else {
+          errEl.textContent = 'Falsches Passwort.';
+          document.getElementById('password').value = '';
+          document.getElementById('password').focus();
+        }
+      } catch {
+        errEl.textContent = 'Verbindungsfehler – bitte erneut versuchen.';
       }
     }
 
     function logout() {
-      document.getElementById('app-view').style.display = 'none';
+      apiToken = null;
+      stopProgress('create');
+      stopProgress('edit');
+      clearStatus('create-status');
+      clearStatus('edit-status');
+      document.getElementById('app-view').style.display  = 'none';
       document.getElementById('login-view').style.display = 'block';
       document.getElementById('password').value = '';
-      document.getElementById('edit-message').value = '';
-      document.getElementById('create-message').value = '';
-      clearStatus('edit-status');
-      clearStatus('create-status');
+    }
+
+    // ── SENDEN ───────────────────────────────────────────────
+    async function sendCreate() {
+      const thema = document.getElementById('c-thema').value.trim();
+      if (!thema) {
+        showStatus('create-status', 'error', '✗ Blog-Thema ist erforderlich.');
+        return;
+      }
+
+      const lines = [
+        ['BLOG-THEMA',          'c-thema'],
+        ['FOKUS-KEYWORD',       'c-keyword'],
+        ['SEKUNDÄRE KEYWORDS',  'c-sek'],
+        ['ZIELGRUPPEN-FOKUS',   'c-zielgruppe'],
+        ['ANGLE',               'c-angle'],
+        ['INTERNE LINKS',       'c-links'],
+        ['BESONDERE HINWEISE',  'c-hinweise'],
+      ];
+      const message = lines
+        .map(([label, id]) => {
+          const v = document.getElementById(id).value.trim();
+          return v ? `${label}: ${v}` : null;
+        })
+        .filter(Boolean)
+        .join('\n');
+
+      await sendToWebhook('create', message, 'success-blue', 20 * 60);
     }
 
     async function sendEdit() {
-      const message = document.getElementById('edit-message').value.trim();
-      if (!message) return;
-      await sendToWebhook(WEBHOOK_EDIT, message, 'edit', 'success-green');
+      const titel    = document.getElementById('e-titel').value.trim();
+      const id       = document.getElementById('e-id').value.trim();
+      const aenderung = document.getElementById('e-aenderung').value.trim();
+
+      if (!titel && !id) {
+        showStatus('edit-status', 'error', '✗ Titel oder ID angeben.');
+        return;
+      }
+      if (titel && id) {
+        showStatus('edit-status', 'error', '✗ Nur Titel ODER ID ausfüllen – nicht beide.');
+        return;
+      }
+      if (!aenderung) {
+        showStatus('edit-status', 'error', '✗ Änderung fehlt.');
+        return;
+      }
+
+      const identifier = titel ? `Titel: "${titel}"` : `ID: "${id}"`;
+      const message = `${identifier}\n\n${aenderung}`;
+
+      await sendToWebhook('edit', message, 'success-green', 3 * 60);
     }
 
-    async function sendCreate() {
-      const message = document.getElementById('create-message').value.trim();
-      if (!message) return;
-      await sendToWebhook(WEBHOOK_CREATE, message, 'create', 'success-blue');
-    }
-
-    async function sendToWebhook(url, message, prefix, successClass) {
-      setLoading(prefix, true);
-      clearStatus(prefix + '-status');
+    async function sendToWebhook(type, message, successClass, durationSec) {
+      setLoading(type, true);
+      clearStatus(type + '-status');
       try {
-        const res = await fetch(url, {
+        const res = await fetch('/.netlify/functions/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
+          body: JSON.stringify({ type, message, token: apiToken }),
         });
         if (res.ok) {
-          showStatus(prefix + '-status', successClass, '✓ Auftrag gesendet – Workflow läuft.');
-          document.getElementById(prefix + '-message').value = '';
+          showStatus(type + '-status', successClass, '✓ Auftrag gesendet – Workflow läuft.');
+          startProgress(type, durationSec);
         } else {
-          showStatus(prefix + '-status', 'error', '✗ Fehler beim Senden. Status: ' + res.status);
+          showStatus(type + '-status', 'error', '✗ Fehler beim Senden (Status ' + res.status + ').');
         }
-      } catch (err) {
-        showStatus(prefix + '-status', 'error', '✗ Verbindung fehlgeschlagen.');
+      } catch {
+        showStatus(type + '-status', 'error', '✗ Verbindung fehlgeschlagen.');
       }
-      setLoading(prefix, false);
+      setLoading(type, false);
     }
 
+    // ── FORTSCHRITTSBALKEN ────────────────────────────────────
+    function startProgress(type, totalSec) {
+      stopProgress(type);
+
+      const startTime = Date.now();
+      progressState[type] = { startTime, totalSec, done: false, pollId: null, tickId: null };
+
+      const section  = document.getElementById(type + '-progress');
+      const bar      = document.getElementById(type + '-bar');
+      const pctEl    = document.getElementById(type + '-pct');
+      const elapsed  = document.getElementById(type + '-elapsed');
+      const waiting  = document.getElementById(type + '-waiting');
+      const doneMsg  = document.getElementById(type + '-done');
+
+      section.style.display  = 'block';
+      bar.classList.remove('complete');
+      bar.style.width        = '0%';
+      pctEl.textContent      = '0%';
+      elapsed.textContent    = '0:00';
+      waiting.style.display  = 'none';
+      doneMsg.style.display  = 'none';
+
+      progressState[type].tickId = setInterval(() => {
+        const state = progressState[type];
+        if (!state || state.done) return;
+
+        const elapsedSec = (Date.now() - state.startTime) / 1000;
+        const raw = elapsedSec / state.totalSec;
+        const pct = Math.min(raw * 95, 95);
+
+        bar.style.width   = pct.toFixed(1) + '%';
+        pctEl.textContent = Math.round(pct) + '%';
+
+        const m = Math.floor(elapsedSec / 60);
+        const s = Math.floor(elapsedSec % 60);
+        elapsed.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+
+        if (pct >= 95 && waiting.style.display === 'none') {
+          waiting.style.display = 'block';
+        }
+      }, 1000);
+
+      // Polling startet nach 15 Sekunden
+      setTimeout(() => {
+        if (!progressState[type] || progressState[type].done) return;
+        progressState[type].pollId = setInterval(() => pollCompletion(type), 5000);
+      }, 15000);
+    }
+
+    function stopProgress(type) {
+      const state = progressState[type];
+      if (state) {
+        clearInterval(state.tickId);
+        clearInterval(state.pollId);
+      }
+      progressState[type] = null;
+      const section = document.getElementById(type + '-progress');
+      if (section) section.style.display = 'none';
+    }
+
+    async function pollCompletion(type) {
+      if (!apiToken) return;
+      const state = progressState[type];
+      if (!state || state.done) return;
+
+      try {
+        const res = await fetch(
+          `/.netlify/functions/poll-status?type=${type}&token=${encodeURIComponent(apiToken)}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.done) markDone(type);
+        }
+      } catch {
+        // Polling-Fehler still ignorieren
+      }
+    }
+
+    function markDone(type) {
+      const state = progressState[type];
+      if (!state || state.done) return;
+      state.done = true;
+      clearInterval(state.tickId);
+      clearInterval(state.pollId);
+
+      const bar     = document.getElementById(type + '-bar');
+      const pctEl   = document.getElementById(type + '-pct');
+      const waiting = document.getElementById(type + '-waiting');
+      const doneMsg = document.getElementById(type + '-done');
+
+      bar.classList.add('complete');
+      bar.style.width   = '100%';
+      pctEl.textContent = '100%';
+      waiting.style.display  = 'none';
+      doneMsg.style.display  = 'block';
+    }
+
+    // ── UI-HELFER ─────────────────────────────────────────────
     function setLoading(prefix, loading) {
       document.getElementById(prefix + '-btn').disabled          = loading;
       document.getElementById(prefix + '-spinner').style.display = loading ? 'block' : 'none';
