@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #141414;
+      --border: #2a2a2a;
+      --accent: #c8f060;
+      --accent-blue: #60c8f0;
+      --text: #e8e8e8;
+      --text-muted: #666;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 1080px;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── LOGIN ── */
+    #login-view {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .logo-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      letter-spacing: 0.1em;
+    }
+
+    input[type="password"]:focus { border-color: var(--accent); }
+
+    .error-msg {
+      font-size: 12px;
+      color: #ff6b6b;
+      margin-top: 8px;
+      min-height: 16px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── APP ── */
+    #app-view { display: none; }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .app-header .logo { margin-bottom: 0; }
+
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    .logout-btn:hover { color: var(--text); border-color: var(--text-muted); }
+
+    /* ── PANELS ── */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 680px) {
+      .panels { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      transition: border-color 0.2s;
+    }
+
+    .panel:hover { border-color: #3a3a3a; }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .panel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .panel-dot.blue {
+      background: var(--accent-blue);
+      box-shadow: 0 0 8px var(--accent-blue);
+    }
+
+    .panel-dot.green {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .panel-wf {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      padding-left: 18px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .info-box.blue {
+      background: rgba(96, 200, 240, 0.06);
+      border: 1px solid rgba(96, 200, 240, 0.2);
+      color: #8dd8ef;
+    }
+
+    .info-box.green {
+      background: rgba(200, 240, 96, 0.06);
+      border: 1px solid rgba(200, 240, 96, 0.2);
+      color: #b0d870;
+    }
+
+    .info-box-title {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+
+    /* ── TEXTAREA ── */
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      resize: vertical;
+      min-height: 200px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+
+    textarea::placeholder { color: #444; }
+
+    #create-message:focus { border-color: var(--accent-blue); }
+    #edit-message:focus   { border-color: var(--accent); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      width: 100%;
+      padding: 13px 20px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:active:not(:disabled) { transform: translateY(0) !important; }
+
+    .btn-blue {
+      background: var(--accent-blue);
+      color: #0f0f0f;
+    }
+    .btn-blue:hover:not(:disabled) {
+      background: #80d8ff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(96, 200, 240, 0.2);
+    }
+
+    .btn-green {
+      background: var(--accent);
+      color: #0f0f0f;
+    }
+    .btn-green:hover:not(:disabled) {
+      background: #d8ff70;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(200, 240, 96, 0.2);
+    }
+
+    .btn-login {
+      background: var(--accent);
+      color: #0f0f0f;
+      margin-top: 20px;
+    }
+    .btn-login:hover {
+      background: #d8ff70;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(200, 240, 96, 0.25);
+    }
+
+    /* ── STATUS ── */
+    .status {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status.success-blue {
+      background: rgba(96, 200, 240, 0.08);
+      border: 1px solid rgba(96, 200, 240, 0.25);
+      color: var(--accent-blue);
+      display: flex;
+    }
+
+    .status.success-green {
+      background: rgba(200, 240, 96, 0.08);
+      border: 1px solid rgba(200, 240, 96, 0.25);
+      color: var(--accent);
+      display: flex;
+    }
+
+    .status.error {
+      background: rgba(255, 107, 107, 0.08);
+      border: 1px solid rgba(255, 107, 107, 0.25);
+      color: #ff6b6b;
+      display: flex;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(15,15,15,0.3);
+      border-top-color: #0f0f0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- ── LOGIN ── -->
+    <div id="login-view">
+      <div class="logo">
+        <div class="logo-dot"></div>
+        <span class="logo-text">Blog Manager</span>
+      </div>
+      <h1>Zugang</h1>
+      <p class="subtitle">Bitte Passwort eingeben um fortzufahren.</p>
+      <label class="field-label" for="password">Passwort</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+      <div class="error-msg" id="login-error"></div>
+      <button class="btn btn-login" onclick="login()">Anmelden</button>
+    </div>
+
+    <!-- ── APP ── -->
+    <div id="app-view">
+      <div class="app-header">
+        <div class="logo">
+          <div class="logo-dot"></div>
+          <span class="logo-text">Blog Manager</span>
+        </div>
+        <button class="logout-btn" onclick="logout()">Abmelden →</button>
+      </div>
+
+      <div class="panels">
+
+        <!-- Panel Links: Blog erstellen -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-dot blue"></div>
+            <span class="panel-title">Blog erstellen</span>
+          </div>
+          <p class="panel-wf">→ Blog landet als Draft in Wordpress Posts</p>
+
+          <div class="info-box blue"><div class="info-box-title">📋 Template</div>BLOG-THEMA:
+FOKUS-KEYWORD:
+SEKUNDÄRE KEYWORDS:
+ZIELGRUPPEN-FOKUS:
+ANGLE:
+INTERNE LINKS:
+BESONDERE HINWEISE:</div>
+
+          <label class="field-label">Anweisung</label>
+          <textarea
+            id="create-message"
+            placeholder="BLOG-THEMA: ERP-Integration im Mittelstand
+FOKUS-KEYWORD: ERP-Integration
+SEKUNDÄRE KEYWORDS: Middleware, Schnittstellen
+ZIELGRUPPEN-FOKUS: IT-Leiter im Mittelstand
+ANGLE: Praxisnah mit Checkliste
+INTERNE LINKS: /erp-einfuehrung
+BESONDERE HINWEISE: Ton sachlich, ca. 1500 Wörter"
+          ></textarea>
+
+          <button class="btn btn-blue" id="create-btn" onclick="sendCreate()">
+            <span class="spinner" id="create-spinner"></span>
+            <span id="create-label">Absenden</span>
+          </button>
+          <div class="status" id="create-status"></div>
+        </div>
+
+        <!-- Panel Rechts: Blog bearbeiten -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-dot green"></div>
+            <span class="panel-title">Blog bearbeiten</span>
+          </div>
+          <p class="panel-wf">→ Blog wird direkt bearbeitet in Wordpress zurückgegeben</p>
+
+          <div class="info-box green"><div class="info-box-title">💡 Hinweis</div>Starte mit:
+Titel: "Titel des Blogs"
+oder
+ID: "Blog-ID"
+
+Beschreibe im Anschluss in welchem Bereich was geändert werden soll.</div>
+
+          <label class="field-label">Anweisung</label>
+          <textarea
+            id="edit-message"
+            placeholder='Titel: "ERP-Integration: Echtzeit-Bestandsabgleich"
+
+Entferne im Fazit den SEO-Meta-Block und strukturiere den Absatz mit Leerzeilen.'
+          ></textarea>
+
+          <button class="btn btn-green" id="edit-btn" onclick="sendEdit()">
+            <span class="spinner" id="edit-spinner"></span>
+            <span id="edit-label">Absenden</span>
+          </button>
+          <div class="status" id="edit-status"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── KONFIGURATION ─────────────────────────────────────────
+    const PASSWORT       = "n8n-umantis";        // Passwort ändern
+    const WEBHOOK_EDIT   = "https://n8n.srv1569251.hstgr.cloud/webhook-test/29707833-190c-454b-9cea-5c1f508aed1b"; // Blog bearbeiten → Workflow 1
+    const WEBHOOK_CREATE = "https://n8n.srv1569251.hstgr.cloud/webhook-test/ae624413-a72c-40d6-ab64-7f538509df78"; // Blog erstellen  → Workflow 2
+    // ─────────────────────────────────────────────────────────
+
+    document.getElementById('password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') login();
+    });
+
+    function login() {
+      const pw = document.getElementById('password').value;
+      if (pw === PASSWORT) {
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('app-view').style.display = 'block';
+        document.getElementById('login-error').textContent = '';
+      } else {
+        document.getElementById('login-error').textContent = 'Falsches Passwort.';
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      }
+    }
+
+    function logout() {
+      document.getElementById('app-view').style.display = 'none';
+      document.getElementById('login-view').style.display = 'block';
+      document.getElementById('password').value = '';
+      document.getElementById('edit-message').value = '';
+      document.getElementById('create-message').value = '';
+      clearStatus('edit-status');
+      clearStatus('create-status');
+    }
+
+    async function sendEdit() {
+      const message = document.getElementById('edit-message').value.trim();
+      if (!message) return;
+      await sendToWebhook(WEBHOOK_EDIT, message, 'edit', 'success-green');
+    }
+
+    async function sendCreate() {
+      const message = document.getElementById('create-message').value.trim();
+      if (!message) return;
+      await sendToWebhook(WEBHOOK_CREATE, message, 'create', 'success-blue');
+    }
+
+    async function sendToWebhook(url, message, prefix, successClass) {
+      setLoading(prefix, true);
+      clearStatus(prefix + '-status');
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        if (res.ok) {
+          showStatus(prefix + '-status', successClass, '✓ Auftrag gesendet – Workflow läuft.');
+          document.getElementById(prefix + '-message').value = '';
+        } else {
+          showStatus(prefix + '-status', 'error', '✗ Fehler beim Senden. Status: ' + res.status);
+        }
+      } catch (err) {
+        showStatus(prefix + '-status', 'error', '✗ Verbindung fehlgeschlagen.');
+      }
+      setLoading(prefix, false);
+    }
+
+    function setLoading(prefix, loading) {
+      document.getElementById(prefix + '-btn').disabled          = loading;
+      document.getElementById(prefix + '-spinner').style.display = loading ? 'block' : 'none';
+      document.getElementById(prefix + '-label').textContent     = loading ? 'Wird gesendet...' : 'Absenden';
+    }
+
+    function showStatus(id, type, msg) {
+      const el = document.getElementById(id);
+      el.className   = 'status ' + type;
+      el.textContent = msg;
+    }
+
+    function clearStatus(id) {
+      const el = document.getElementById(id);
+      el.className   = 'status';
+      el.textContent = '';
+    }
+  </script>
+</body>
+</html>
