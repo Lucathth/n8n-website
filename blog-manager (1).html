@@ -773,26 +773,40 @@
     }
 
     async function sendToWebhook(type, message) {
-      // Timer, Fortschrittsbalken und Button sofort beim Klick starten –
-      // VOR jedem await, damit kein async-Checkpoint den Start verzögert
+      // 1. Timer und Fortschrittsbalken sofort starten (synchrone DOM-Updates)
       startWorkflow(type);
-
-      // Notification-Berechtigung im Hintergrund anfragen (kein await – blockiert nicht)
       maybeRequestNotifPermission();
 
+      // 2. Einen Paint-Frame abwarten – Browser rendert Timer/Balken BEVOR fetch startet
+      await new Promise(r => requestAnimationFrame(r));
+
+      // 3. fetch – die Antwort signalisiert den Abschluss
       try {
         const res = await fetch('/.netlify/functions/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type, message, token: apiToken }),
         });
+
+        let webhookMsg = '';
+        try {
+          const ct = res.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const data = await res.json();
+            webhookMsg = data.message || data.output || data.text || data.result || '';
+            if (!webhookMsg && typeof data === 'string') webhookMsg = data;
+          } else {
+            webhookMsg = (await res.text()).trim();
+          }
+        } catch { /* Body-Lesefehler ignorieren */ }
+
         if (res.ok) {
-          finishWorkflow(type, true);
+          finishWorkflow(type, true, webhookMsg);
         } else {
-          finishWorkflow(type, false);
+          finishWorkflow(type, false, webhookMsg || 'HTTP ' + res.status);
         }
       } catch {
-        finishWorkflow(type, false);
+        finishWorkflow(type, false, 'Verbindung fehlgeschlagen');
       }
     }
 
@@ -871,7 +885,7 @@
       }
     }
 
-    function finishWorkflow(type, success) {
+    function finishWorkflow(type, success, webhookMsg) {
       const state   = wfState[type];
       const elapsed = state ? Date.now() - state.startTime : 0;
       const timeStr = fmtTime(elapsed);
@@ -902,9 +916,10 @@
         pctEl.textContent     = '100%';
         waiting.style.display = 'none';
         doneMsg.style.display = 'block';
-        doneMsg.textContent   = `✓ Abgeschlossen in ${timeStr}`;
+        // Webhook-Nachricht anzeigen, Fallback auf Zeitangabe
+        doneMsg.textContent   = webhookMsg ? `✓ ${webhookMsg}` : `✓ Abgeschlossen in ${timeStr}`;
 
-        // Statusleiste: abgeschlossen
+        // Statusleiste: Zeit + ggf. gekürzte Webhook-Nachricht
         const successClass     = type === 'create' ? 'success-blue' : 'success-green';
         statusEl.className     = 'status ' + successClass;
         statusEl.style.display = 'flex';
@@ -912,12 +927,14 @@
 
         // Browser-Benachrichtigung
         const notifTitle = type === 'create' ? 'Blog erstellt ✓' : 'Blog bearbeitet ✓';
-        sendBrowserNotif(notifTitle, `Abgeschlossen in ${timeStr}`);
+        sendBrowserNotif(notifTitle, webhookMsg || `Abgeschlossen in ${timeStr}`);
       } else {
         waiting.style.display  = 'none';
         statusEl.className     = 'status error';
         statusEl.style.display = 'flex';
-        statusEl.textContent   = `✗ Fehler nach ${timeStr}`;
+        statusEl.textContent   = webhookMsg
+          ? `✗ Fehler nach ${timeStr}: ${webhookMsg}`
+          : `✗ Fehler nach ${timeStr}`;
       }
     }
 
