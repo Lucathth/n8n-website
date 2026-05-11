@@ -372,25 +372,36 @@
       gap: 8px;
     }
 
+    .status.running-blue {
+      background: rgba(96, 200, 240, 0.05);
+      border: 1px solid rgba(96, 200, 240, 0.15);
+      color: rgba(96, 200, 240, 0.75);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status.running-green {
+      background: rgba(200, 240, 96, 0.05);
+      border: 1px solid rgba(200, 240, 96, 0.15);
+      color: rgba(200, 240, 96, 0.75);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
     .status.success-blue {
       background: rgba(96, 200, 240, 0.08);
       border: 1px solid rgba(96, 200, 240, 0.25);
       color: var(--accent-blue);
-      display: flex;
     }
 
     .status.success-green {
       background: rgba(200, 240, 96, 0.08);
       border: 1px solid rgba(200, 240, 96, 0.25);
       color: var(--accent);
-      display: flex;
     }
 
     .status.error {
       background: rgba(255, 107, 107, 0.08);
       border: 1px solid rgba(255, 107, 107, 0.25);
       color: #ff6b6b;
-      display: flex;
     }
 
     .spinner {
@@ -649,7 +660,26 @@
     // Alle Credentials liegen in Netlify-Umgebungsvariablen (siehe Setup-Anleitung).
 
     let apiToken = null;
-    const progressState = {};
+    const wfState = {};
+
+    // ── HILFSFUNKTIONEN ───────────────────────────────────────
+    function fmtTime(ms) {
+      const s = Math.floor(ms / 1000);
+      const m = Math.floor(s / 60);
+      return `${String(m).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    async function maybeRequestNotifPermission() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+    }
+
+    function sendBrowserNotif(title, body) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body });
+      }
+    }
 
     // ── LOGIN ─────────────────────────────────────────────────
     document.getElementById('password').addEventListener('keydown', e => {
@@ -683,10 +713,8 @@
 
     function logout() {
       apiToken = null;
-      stopProgress('create');
-      stopProgress('edit');
-      clearStatus('create-status');
-      clearStatus('edit-status');
+      cancelWorkflow('create');
+      cancelWorkflow('edit');
       document.getElementById('app-view').style.display  = 'none';
       document.getElementById('login-view').style.display = 'block';
       document.getElementById('password').value = '';
@@ -717,7 +745,7 @@
         .filter(Boolean)
         .join('\n');
 
-      await sendToWebhook('create', message, 'success-blue', 20 * 60);
+      await sendToWebhook('create', message);
     }
 
     async function sendEdit() {
@@ -741,12 +769,17 @@
       const identifier = titel ? `Titel: "${titel}"` : `ID: "${id}"`;
       const message = `${identifier}\n\n${aenderung}`;
 
-      await sendToWebhook('edit', message, 'success-green', 3 * 60);
+      await sendToWebhook('edit', message);
     }
 
-    async function sendToWebhook(type, message, successClass, durationSec) {
-      setLoading(type, true);
-      clearStatus(type + '-status');
+    async function sendToWebhook(type, message) {
+      // Timer, Fortschrittsbalken und Button sofort beim Klick starten –
+      // VOR jedem await, damit kein async-Checkpoint den Start verzögert
+      startWorkflow(type);
+
+      // Notification-Berechtigung im Hintergrund anfragen (kein await – blockiert nicht)
+      maybeRequestNotifPermission();
+
       try {
         const res = await fetch('/.netlify/functions/send', {
           method: 'POST',
@@ -754,131 +787,146 @@
           body: JSON.stringify({ type, message, token: apiToken }),
         });
         if (res.ok) {
-          showStatus(type + '-status', successClass, '✓ Auftrag gesendet – Workflow läuft.');
-          startProgress(type, durationSec);
+          finishWorkflow(type, true);
         } else {
-          showStatus(type + '-status', 'error', '✗ Fehler beim Senden (Status ' + res.status + ').');
+          finishWorkflow(type, false);
         }
       } catch {
-        showStatus(type + '-status', 'error', '✗ Verbindung fehlgeschlagen.');
+        finishWorkflow(type, false);
       }
-      setLoading(type, false);
     }
 
-    // ── FORTSCHRITTSBALKEN ────────────────────────────────────
-    function startProgress(type, totalSec) {
-      stopProgress(type);
+    // ── WORKFLOW-STEUERUNG ────────────────────────────────────
+    function startWorkflow(type) {
+      cancelWorkflow(type);
 
+      const totalSec = type === 'create' ? 20 * 60 : 3 * 60;
       const startTime = Date.now();
-      progressState[type] = { startTime, totalSec, done: false, pollId: null, tickId: null };
+      wfState[type] = { startTime, totalSec, tickId: null };
 
-      const section  = document.getElementById(type + '-progress');
-      const bar      = document.getElementById(type + '-bar');
-      const pctEl    = document.getElementById(type + '-pct');
-      const elapsed  = document.getElementById(type + '-elapsed');
-      const waiting  = document.getElementById(type + '-waiting');
-      const doneMsg  = document.getElementById(type + '-done');
+      const section   = document.getElementById(type + '-progress');
+      const bar       = document.getElementById(type + '-bar');
+      const pctEl     = document.getElementById(type + '-pct');
+      const elapsedEl = document.getElementById(type + '-elapsed');
+      const waiting   = document.getElementById(type + '-waiting');
+      const doneMsg   = document.getElementById(type + '-done');
+      const statusEl  = document.getElementById(type + '-status');
+      const btn       = document.getElementById(type + '-btn');
+      const spinner   = document.getElementById(type + '-spinner');
+      const labelEl   = document.getElementById(type + '-label');
 
-      section.style.display  = 'block';
+      // Fortschrittsbalken einblenden
+      section.style.display = 'block';
       bar.classList.remove('complete');
-      bar.style.width        = '0%';
-      pctEl.textContent      = '0%';
-      elapsed.textContent    = '0:00';
-      waiting.style.display  = 'none';
-      doneMsg.style.display  = 'none';
+      bar.style.width       = '0%';
+      pctEl.textContent     = '0%';
+      elapsedEl.textContent = '00:00';
+      waiting.style.display = 'block';
+      doneMsg.style.display = 'none';
 
-      progressState[type].tickId = setInterval(() => {
-        const state = progressState[type];
-        if (!state || state.done) return;
+      // Statusleiste
+      const runClass = type === 'create' ? 'running-blue' : 'running-green';
+      statusEl.className     = 'status ' + runClass;
+      statusEl.style.display = 'flex';
+      statusEl.textContent   = 'Workflow läuft... 00:00';
 
-        const elapsedSec = (Date.now() - state.startTime) / 1000;
-        const raw = elapsedSec / state.totalSec;
-        const pct = Math.min(raw * 95, 95);
+      // Button deaktivieren mit Spinner
+      btn.disabled          = true;
+      spinner.style.display = 'block';
+      labelEl.textContent   = 'Läuft... 00:00';
 
-        bar.style.width   = pct.toFixed(1) + '%';
-        pctEl.textContent = Math.round(pct) + '%';
+      // Tick jede Sekunde: Timer, Fortschritt und Labels aktualisieren
+      wfState[type].tickId = setInterval(() => {
+        const state = wfState[type];
+        if (!state) return;
 
-        const m = Math.floor(elapsedSec / 60);
-        const s = Math.floor(elapsedSec % 60);
-        elapsed.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+        const elapsed    = Date.now() - state.startTime;
+        const timeStr    = fmtTime(elapsed);
+        const elapsedSec = elapsed / 1000;
+        const pct        = Math.min((elapsedSec / state.totalSec) * 95, 95);
 
-        if (pct >= 95 && waiting.style.display === 'none') {
-          waiting.style.display = 'block';
-        }
+        bar.style.width       = pct.toFixed(1) + '%';
+        pctEl.textContent     = Math.round(pct) + '%';
+        elapsedEl.textContent = timeStr;
+        labelEl.textContent   = `Läuft... ${timeStr}`;
+        statusEl.textContent  = `Workflow läuft... ${timeStr}`;
       }, 1000);
-
-      // Polling startet nach 15 Sekunden
-      setTimeout(() => {
-        if (!progressState[type] || progressState[type].done) return;
-        progressState[type].pollId = setInterval(() => pollCompletion(type), 5000);
-      }, 15000);
     }
 
-    function stopProgress(type) {
-      const state = progressState[type];
-      if (state) {
-        clearInterval(state.tickId);
-        clearInterval(state.pollId);
-      }
-      progressState[type] = null;
+    function cancelWorkflow(type) {
+      const state = wfState[type];
+      if (state) clearInterval(state.tickId);
+      wfState[type] = null;
+
       const section = document.getElementById(type + '-progress');
       if (section) section.style.display = 'none';
-    }
 
-    async function pollCompletion(type) {
-      if (!apiToken) return;
-      const state = progressState[type];
-      if (!state || state.done) return;
-
-      try {
-        const res = await fetch(
-          `/.netlify/functions/poll-status?type=${type}&token=${encodeURIComponent(apiToken)}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (data.done) markDone(type);
-        }
-      } catch {
-        // Polling-Fehler still ignorieren
+      const btn     = document.getElementById(type + '-btn');
+      const spinner = document.getElementById(type + '-spinner');
+      const labelEl = document.getElementById(type + '-label');
+      if (btn) {
+        btn.disabled          = false;
+        spinner.style.display = 'none';
+        labelEl.textContent   = 'Absenden';
       }
     }
 
-    function markDone(type) {
-      const state = progressState[type];
-      if (!state || state.done) return;
-      state.done = true;
-      clearInterval(state.tickId);
-      clearInterval(state.pollId);
+    function finishWorkflow(type, success) {
+      const state   = wfState[type];
+      const elapsed = state ? Date.now() - state.startTime : 0;
+      const timeStr = fmtTime(elapsed);
 
-      const bar     = document.getElementById(type + '-bar');
-      const pctEl   = document.getElementById(type + '-pct');
-      const waiting = document.getElementById(type + '-waiting');
-      const doneMsg = document.getElementById(type + '-done');
+      if (state) clearInterval(state.tickId);
+      wfState[type] = null;
 
-      bar.classList.add('complete');
-      bar.style.width   = '100%';
-      pctEl.textContent = '100%';
-      waiting.style.display  = 'none';
-      doneMsg.style.display  = 'block';
+      const bar       = document.getElementById(type + '-bar');
+      const pctEl     = document.getElementById(type + '-pct');
+      const elapsedEl = document.getElementById(type + '-elapsed');
+      const waiting   = document.getElementById(type + '-waiting');
+      const doneMsg   = document.getElementById(type + '-done');
+      const statusEl  = document.getElementById(type + '-status');
+      const btn       = document.getElementById(type + '-btn');
+      const spinner   = document.getElementById(type + '-spinner');
+      const labelEl   = document.getElementById(type + '-label');
+
+      // Button wieder aktivieren
+      btn.disabled          = false;
+      spinner.style.display = 'none';
+      labelEl.textContent   = 'Absenden';
+      elapsedEl.textContent = timeStr;
+
+      if (success) {
+        // Fortschrittsbalken auf 100%
+        bar.classList.add('complete');
+        bar.style.width       = '100%';
+        pctEl.textContent     = '100%';
+        waiting.style.display = 'none';
+        doneMsg.style.display = 'block';
+        doneMsg.textContent   = `✓ Abgeschlossen in ${timeStr}`;
+
+        // Statusleiste: abgeschlossen
+        const successClass     = type === 'create' ? 'success-blue' : 'success-green';
+        statusEl.className     = 'status ' + successClass;
+        statusEl.style.display = 'flex';
+        statusEl.textContent   = `✓ Abgeschlossen in ${timeStr}`;
+
+        // Browser-Benachrichtigung
+        const notifTitle = type === 'create' ? 'Blog erstellt ✓' : 'Blog bearbeitet ✓';
+        sendBrowserNotif(notifTitle, `Abgeschlossen in ${timeStr}`);
+      } else {
+        waiting.style.display  = 'none';
+        statusEl.className     = 'status error';
+        statusEl.style.display = 'flex';
+        statusEl.textContent   = `✗ Fehler nach ${timeStr}`;
+      }
     }
 
     // ── UI-HELFER ─────────────────────────────────────────────
-    function setLoading(prefix, loading) {
-      document.getElementById(prefix + '-btn').disabled          = loading;
-      document.getElementById(prefix + '-spinner').style.display = loading ? 'block' : 'none';
-      document.getElementById(prefix + '-label').textContent     = loading ? 'Wird gesendet...' : 'Absenden';
-    }
-
-    function showStatus(id, type, msg) {
+    function showStatus(id, cls, msg) {
       const el = document.getElementById(id);
-      el.className   = 'status ' + type;
-      el.textContent = msg;
-    }
-
-    function clearStatus(id) {
-      const el = document.getElementById(id);
-      el.className   = 'status';
-      el.textContent = '';
+      el.className     = 'status ' + cls;
+      el.style.display = 'flex';
+      el.textContent   = msg;
     }
   </script>
 </body>
