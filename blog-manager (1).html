@@ -773,10 +773,12 @@
     }
 
     async function sendToWebhook(type, message) {
-      await maybeRequestNotifPermission();
-
-      // Timer, Fortschrittsbalken und Button-Status starten sofort beim Klick
+      // Timer, Fortschrittsbalken und Button sofort beim Klick starten –
+      // VOR jedem await, damit kein async-Checkpoint den Start verzögert
       startWorkflow(type);
+
+      // Notification-Berechtigung im Hintergrund anfragen (kein await – blockiert nicht)
+      maybeRequestNotifPermission();
 
       try {
         const res = await fetch('/.netlify/functions/send', {
