@@ -17,11 +17,11 @@ exports.handler = async (event) => {
     return { statusCode: 401, headers: cors() };
   }
 
-  if (!['create', 'edit'].includes(type)) {
+  if (type !== 'create') {
     return { statusCode: 400, headers: cors() };
   }
 
-  const url = type === 'create' ? process.env.WEBHOOK_CREATE : process.env.WEBHOOK_EDIT;
+  const url = process.env.WEBHOOK_CREATE;
   if (!url) {
     return { statusCode: 500, body: 'Webhook URL nicht konfiguriert', headers: cors() };
   }

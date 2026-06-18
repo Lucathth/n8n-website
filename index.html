@@ -3,645 +3,414 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blog Manager</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <title>Blog Manager — Abacus Austria</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f0f0f;
-      --surface: #181818;
-      --surface2: #141414;
-      --border: #2a2a2a;
-      --accent: #c8f060;
-      --accent-blue: #60c8f0;
-      --text: #e8e8e8;
-      --text-muted: #666;
-      --radius: 12px;
+      --aba-red: #de323c;
+      --aba-red-dark: #c20936;
+      --aba-white: #ffffff;
+      --aba-black: #282828;
+      --aba-black-dark: #141414;
+      --grey-light: #f4f4f4;
+      --grey-midlight: #efefef;
+      --grey-mid: #dcdcdc;
+      --grey-middark: #c0c0c0;
+      --ink-muted: #595959;
+      --font-primary: Europa, Arial, Helvetica, sans-serif;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
     }
+
+    html { -webkit-text-size-adjust: 100%; }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      background: var(--aba-black-dark);
+      color: var(--aba-white);
+      font-family: var(--font-primary);
+      font-weight: 300;
+      letter-spacing: 1px;
+      line-height: 1.6;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .wrapper {
-      width: 100%;
-      max-width: 1100px;
-      position: relative;
-      z-index: 1;
-      animation: fadeUp 0.4s ease both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── LOGIN ── */
-    #login-view {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 40px;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 32px;
-    }
-
-    .logo-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 10px var(--accent);
-      flex-shrink: 0;
-    }
-
-    .logo-text {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
-
-    h1 {
-      font-size: 22px;
-      font-weight: 500;
-      margin-bottom: 6px;
-      letter-spacing: -0.02em;
-    }
-
-    .subtitle {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-    }
-
-    .field-label {
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    input[type="password"] {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
-      font-family: 'DM Mono', monospace;
-      font-size: 15px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s;
-      letter-spacing: 0.1em;
-    }
-
-    input[type="password"]:focus { border-color: var(--accent); }
-
-    .error-msg {
-      font-size: 12px;
-      color: #ff6b6b;
-      margin-top: 8px;
-      min-height: 16px;
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* ── APP ── */
-    #app-view { display: none; }
-
-    .app-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-
-    .app-header .logo { margin-bottom: 0; }
-
-    .logout-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      cursor: pointer;
-      transition: all 0.2s;
-      padding: 6px 12px;
-      border-radius: 6px;
-    }
-
-    .logout-btn:hover { color: var(--text); border-color: var(--text-muted); }
-
-    /* ── PANELS ── */
-    .panels {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      align-items: stretch;
-    }
-
-    @media (max-width: 720px) {
-      .panels { grid-template-columns: 1fr; }
-    }
-
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      transition: border-color 0.2s;
       display: flex;
       flex-direction: column;
     }
 
-    .panel .form-fields { flex: 1; }
-
-    .panel:hover { border-color: #3a3a3a; }
-
-    .panel-header {
+    /* ── HEADER (AbaSchwarz, weißes Logo) ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--aba-black);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      height: 4rem;
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
     }
 
-    .panel-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .panel-dot.blue {
-      background: var(--accent-blue);
-      box-shadow: 0 0 8px var(--accent-blue);
-    }
-
-    .panel-dot.green {
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-    }
-
-    .panel-title {
-      font-size: 16px;
-      font-weight: 500;
-      letter-spacing: -0.01em;
-    }
-
-    .panel-wf {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      padding-left: 18px;
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* ── STRUCTURED FORM FIELDS ── */
-    .form-fields {
-      margin-bottom: 20px;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 148px 1fr;
-      align-items: start;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .form-row-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      text-align: right;
-      padding-top: 9px;
-      line-height: 1.3;
-    }
-
-    .form-row input[type="text"],
-    .form-row textarea {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s;
+    .topbar-inner {
       width: 100%;
-    }
-
-    .form-row input[type="text"]::placeholder,
-    .form-row textarea::placeholder { color: #3a3a3a; }
-
-    .panel-blue .form-row input[type="text"]:focus,
-    .panel-blue .form-row textarea:focus { border-color: var(--accent-blue); }
-
-    .panel-green .form-row input[type="text"]:focus,
-    .panel-green .form-row textarea:focus { border-color: var(--accent); }
-
-    .form-row textarea {
-      resize: vertical;
-      min-height: 72px;
-      line-height: 1.6;
-    }
-
-    .form-divider {
+      max-width: 80rem;
+      margin: 0 auto;
+      padding: 0 1rem;
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin: 12px 0 10px;
-      padding-left: 158px;
+      justify-content: space-between;
     }
 
-    .form-divider-line {
+    @media (min-width: 768px) {
+      .topbar-inner { padding: 0 2rem; }
+    }
+
+    .brand { display: flex; align-items: center; gap: 0.75rem; }
+    .brand img { height: 1.5rem; width: auto; display: block; }
+    .brand-label {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: uppercase;
+      padding-left: 0.75rem;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: var(--aba-white);
+      font-family: var(--font-primary);
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      cursor: pointer;
+      padding: 0.4rem 0.9rem;
+      border-radius: var(--radius-md);
+      transition: all 0.15s ease;
+    }
+    .logout-btn:hover { background: var(--aba-red); border-color: var(--aba-red); }
+    .logout-btn:focus-visible { outline: 2px solid var(--aba-red); outline-offset: 2px; }
+
+    /* ── LAYOUT ── */
+    main {
       flex: 1;
-      height: 1px;
-      background: var(--border);
+      width: 100%;
+      max-width: 80rem;
+      margin: 0 auto;
+      padding: 3rem 1rem 5rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    @media (min-width: 768px) {
+      main { padding: 5rem 2rem 7rem; }
     }
 
-    .form-divider-text {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--text-muted);
-      letter-spacing: 0.06em;
-      white-space: nowrap;
+    .card {
+      background: var(--aba-black);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 880px;
+      padding: 2.5rem;
+      animation: fadeUp 0.4s ease both;
+    }
+    #login-view .card { max-width: 440px; }
+    @media (max-width: 480px) {
+      .card { padding: 1.75rem 1.25rem; }
     }
 
-    .field-hint {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--text-muted);
-      margin: 2px 0 10px 158px;
-      opacity: 0.65;
-      line-height: 1.5;
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--aba-red);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: 31px;
+      font-weight: 400;
+      line-height: 1.32;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 2rem;
+      max-width: 48ch;
+    }
+
+    .workflow-note {
+      font-size: 14px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 2rem;
+      padding-top: 1rem;
+      border-top: 2px solid var(--aba-red);
+    }
+    .workflow-note strong { font-weight: 700; color: var(--aba-white); }
+
+    /* ── FORM ── */
+    .field-label {
+      font-size: 12px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.55);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .form-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 1.5rem;
+    }
+    .field { margin-bottom: 1.1rem; }
+    .field.full { grid-column: 1 / -1; }
+
+    @media (max-width: 560px) {
+      .form-fields { grid-template-columns: 1fr; }
+    }
+
+    input[type="text"],
+    input[type="password"],
+    textarea {
+      width: 100%;
+      background: var(--aba-black-dark);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 0.7rem 0.9rem;
+      font-family: var(--font-primary);
+      font-size: 16px;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+      color: var(--aba-white);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    input::placeholder, textarea::placeholder { color: rgba(255, 255, 255, 0.25); }
+    input:focus, textarea:focus {
+      border-color: var(--aba-red);
+      box-shadow: 0 0 0 1px var(--aba-red);
+    }
+    textarea { resize: vertical; min-height: 84px; line-height: 1.6; }
+
+    .error-msg {
+      font-size: 13px;
+      color: var(--aba-red);
+      margin-top: 0.5rem;
+      min-height: 18px;
     }
 
     /* ── BUTTONS ── */
     .btn {
       width: 100%;
-      padding: 13px 20px;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
+      height: 2.75rem;
+      padding: 0 1.5rem;
+      border-radius: var(--radius-md);
+      font-family: var(--font-primary);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
       cursor: pointer;
       border: none;
-      transition: all 0.2s;
+      transition: background 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 0.5rem;
     }
-
+    .btn-primary { background: var(--aba-red); color: var(--aba-white); }
+    .btn-primary:hover:not(:disabled) { background: var(--aba-red-dark); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn:active:not(:disabled) { transform: translateY(0) !important; }
+    .btn:focus-visible { outline: 2px solid var(--aba-red); outline-offset: 2px; }
 
-    .btn-blue {
-      background: var(--accent-blue);
-      color: #0f0f0f;
-    }
-    .btn-blue:hover:not(:disabled) {
-      background: #80d8ff;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 20px rgba(96, 200, 240, 0.2);
-    }
-
-    .btn-green {
-      background: var(--accent);
-      color: #0f0f0f;
-    }
-    .btn-green:hover:not(:disabled) {
-      background: #d8ff70;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 20px rgba(200, 240, 96, 0.2);
-    }
-
-    .btn-login {
-      background: var(--accent);
-      color: #0f0f0f;
-      margin-top: 20px;
-    }
-    .btn-login:hover {
-      background: #d8ff70;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 20px rgba(200, 240, 96, 0.25);
-    }
-
-    /* ── STATUS ── */
-    .status {
-      margin-top: 12px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      display: none;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status.success-blue {
-      background: rgba(96, 200, 240, 0.08);
-      border: 1px solid rgba(96, 200, 240, 0.25);
-      color: var(--accent-blue);
-      display: flex;
-    }
-
-    .status.success-green {
-      background: rgba(200, 240, 96, 0.08);
-      border: 1px solid rgba(200, 240, 96, 0.25);
-      color: var(--accent);
-      display: flex;
-    }
-
-    .status.error {
-      background: rgba(255, 107, 107, 0.08);
-      border: 1px solid rgba(255, 107, 107, 0.25);
-      color: #ff6b6b;
-      display: flex;
+    .cta-row {
+      margin-top: 1.75rem;
+      padding-top: 1.75rem;
+      border-top: 2px solid var(--aba-red);
     }
 
     .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(15,15,15,0.3);
-      border-top-color: #0f0f0f;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-top-color: var(--aba-white);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       display: none;
       flex-shrink: 0;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── PROGRESS BAR ── */
-    .progress-section {
-      margin-top: 16px;
-      padding: 16px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+    /* ── LOGIN ── */
+    #login-view { display: block; }
+    #app-view { display: none; }
+    #login-view .card { max-width: 440px; }
+
+    /* ── POPUP / MODAL ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(40, 40, 40, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      z-index: 50;
+      animation: fadeIn 0.2s ease both;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal {
+      background: var(--aba-black);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-lg);
+      max-width: 460px;
+      width: 100%;
+      padding: 2.5rem;
+      border-top: 4px solid var(--aba-red);
       animation: fadeUp 0.3s ease both;
     }
 
-    .progress-header {
+    .modal-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      justify-content: center;
+      margin-bottom: 1.25rem;
     }
+    .modal-icon svg { width: 1.6rem; height: 1.6rem; stroke: var(--aba-red); }
 
-    .progress-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+    .modal h2 {
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1.29;
+      letter-spacing: 0.8px;
+      margin-bottom: 0.75rem;
     }
-
-    .progress-meta {
-      display: flex;
-      gap: 14px;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--text-muted);
+    .modal p {
+      font-size: 16px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
     }
-
-    .progress-meta span { min-width: 36px; text-align: right; }
-
-    .progress-track {
-      background: var(--border);
-      border-radius: 4px;
-      height: 5px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      width: 0%;
-      transition: width 1s linear;
-    }
-
-    .progress-fill.blue {
-      background: var(--accent-blue);
-      box-shadow: 0 0 8px rgba(96, 200, 240, 0.5);
-    }
-
-    .progress-fill.green {
-      background: var(--accent);
-      box-shadow: 0 0 8px rgba(200, 240, 96, 0.5);
-    }
-
-    .progress-fill.complete {
-      transition: width 0.4s ease;
-    }
-
-    .progress-done-msg {
-      margin-top: 10px;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.04em;
-      display: none;
-    }
-
-    .progress-done-msg.blue { color: var(--accent-blue); }
-    .progress-done-msg.green { color: var(--accent); }
-
-    .progress-waiting {
-      margin-top: 8px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--text-muted);
-      opacity: 0.6;
-      display: none;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.4; }
-      50%       { opacity: 0.8; }
-    }
+    .modal p strong { font-weight: 700; color: var(--aba-white); }
+    .modal .btn { width: auto; min-width: 8rem; }
   </style>
 </head>
 <body>
-  <div class="wrapper">
+
+  <!-- ── HEADER ── -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="media/01_Abacus_Logo_RGB_neg.png" alt="Abacus">
+        <span class="brand-label">Blog Manager</span>
+      </div>
+      <button class="logout-btn" id="logout-btn" onclick="logout()" style="display:none">Abmelden →</button>
+    </div>
+  </header>
+
+  <main>
 
     <!-- ── LOGIN ── -->
     <div id="login-view">
-      <div class="logo">
-        <div class="logo-dot"></div>
-        <span class="logo-text">Blog Manager</span>
+      <div class="card">
+        <p class="eyebrow">Zugang</p>
+        <h1>Anmeldung</h1>
+        <p class="subtitle">Bitte das Passwort eingeben, um fortzufahren.</p>
+
+        <div class="field">
+          <label class="field-label" for="password">Passwort</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+          <div class="error-msg" id="login-error"></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="login()">Anmelden</button>
       </div>
-      <h1>Zugang</h1>
-      <p class="subtitle">Bitte Passwort eingeben um fortzufahren.</p>
-      <label class="field-label" for="password">Passwort</label>
-      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-      <div class="error-msg" id="login-error"></div>
-      <button class="btn btn-login" onclick="login()">Anmelden</button>
     </div>
 
     <!-- ── APP ── -->
     <div id="app-view">
-      <div class="app-header">
-        <div class="logo">
-          <div class="logo-dot"></div>
-          <span class="logo-text">Blog Manager</span>
+      <div class="card">
+        <p class="eyebrow">Neuer Beitrag</p>
+        <h1>Blog erstellen</h1>
+        <p class="workflow-note">→ Der Blog landet als <strong>Draft in Sanity</strong>.</p>
+
+        <div class="form-fields">
+          <div class="field">
+            <label class="field-label" for="c-thema">Blog-Thema</label>
+            <input type="text" id="c-thema" placeholder="ERP-Integration im Mittelstand">
+          </div>
+          <div class="field">
+            <label class="field-label" for="c-keyword">Fokus-Keyword</label>
+            <input type="text" id="c-keyword" placeholder="ERP-Integration">
+          </div>
+          <div class="field">
+            <label class="field-label" for="c-sek">Sekundäre Keywords</label>
+            <input type="text" id="c-sek" placeholder="Middleware, Schnittstellen">
+          </div>
+          <div class="field">
+            <label class="field-label" for="c-zielgruppe">Zielgruppe</label>
+            <input type="text" id="c-zielgruppe" placeholder="IT-Leiter im Mittelstand">
+          </div>
+          <div class="field">
+            <label class="field-label" for="c-angle">Angle</label>
+            <input type="text" id="c-angle" placeholder="Praxisnah mit Checkliste">
+          </div>
+          <div class="field">
+            <label class="field-label" for="c-links">Interne Links</label>
+            <input type="text" id="c-links" placeholder="/erp-einfuehrung, /blog/xyz">
+          </div>
+          <div class="field full">
+            <label class="field-label" for="c-hinweise">Besondere Hinweise</label>
+            <textarea id="c-hinweise" placeholder="Ton sachlich, ca. 1500 Wörter"></textarea>
+          </div>
         </div>
-        <button class="logout-btn" onclick="logout()">Abmelden →</button>
-      </div>
 
-      <div class="panels">
-
-        <!-- Panel Links: Blog erstellen -->
-        <div class="panel panel-blue">
-          <div class="panel-header">
-            <div class="panel-dot blue"></div>
-            <span class="panel-title">Blog erstellen</span>
-          </div>
-          <p class="panel-wf">→ Blog landet als Draft in Wordpress Posts</p>
-
-          <div class="form-fields">
-            <div class="form-row">
-              <span class="form-row-label">Blog-Thema</span>
-              <input type="text" id="c-thema" placeholder="ERP-Integration im Mittelstand">
-            </div>
-            <div class="form-row">
-              <span class="form-row-label">Fokus-Keyword</span>
-              <input type="text" id="c-keyword" placeholder="ERP-Integration">
-            </div>
-            <div class="form-row">
-              <span class="form-row-label">Sek. Keywords</span>
-              <input type="text" id="c-sek" placeholder="Middleware, Schnittstellen">
-            </div>
-            <div class="form-row">
-              <span class="form-row-label">Zielgruppe</span>
-              <input type="text" id="c-zielgruppe" placeholder="IT-Leiter im Mittelstand">
-            </div>
-            <div class="form-row">
-              <span class="form-row-label">Angle</span>
-              <input type="text" id="c-angle" placeholder="Praxisnah mit Checkliste">
-            </div>
-            <div class="form-row">
-              <span class="form-row-label">Interne Links</span>
-              <input type="text" id="c-links" placeholder="/erp-einfuehrung, /blog/xyz">
-            </div>
-            <div class="form-row">
-              <span class="form-row-label">Bes. Hinweise</span>
-              <textarea id="c-hinweise" placeholder="Ton sachlich, ca. 1500 Wörter"></textarea>
-            </div>
-          </div>
-
-          <button class="btn btn-blue" id="create-btn" onclick="sendCreate()">
+        <div class="cta-row">
+          <button class="btn btn-primary" id="create-btn" onclick="sendCreate()">
             <span class="spinner" id="create-spinner"></span>
             <span id="create-label">Absenden</span>
           </button>
-          <div class="status" id="create-status"></div>
-
-          <div class="progress-section" id="create-progress" style="display:none">
-            <div class="progress-header">
-              <span class="progress-label">Workflow läuft</span>
-              <div class="progress-meta">
-                <span id="create-elapsed">0:00</span>
-                <span id="create-pct">0%</span>
-              </div>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill blue" id="create-bar"></div>
-            </div>
-            <div class="progress-waiting" id="create-waiting">Warte auf Abschluss-Signal...</div>
-            <div class="progress-done-msg blue" id="create-done">✓ Workflow abgeschlossen</div>
-          </div>
+          <div class="error-msg" id="create-error"></div>
         </div>
-
-        <!-- Panel Rechts: Blog bearbeiten -->
-        <div class="panel panel-green">
-          <div class="panel-header">
-            <div class="panel-dot green"></div>
-            <span class="panel-title">Blog bearbeiten</span>
-          </div>
-          <p class="panel-wf">→ Blog wird direkt in Wordpress bearbeitet</p>
-
-          <div class="form-fields">
-            <div class="form-row">
-              <span class="form-row-label">Titel</span>
-              <input type="text" id="e-titel" placeholder='ERP-Integration: Echtzeit-Bestandsabgleich'>
-            </div>
-            <div class="form-row">
-              <span class="form-row-label">ID</span>
-              <input type="text" id="e-id" placeholder="1234">
-            </div>
-            <p class="field-hint">ℹ Nur Titel ODER ID ausfüllen – nicht beide</p>
-
-            <div class="form-divider">
-              <div class="form-divider-line"></div>
-              <span class="form-divider-text">Änderung</span>
-              <div class="form-divider-line"></div>
-            </div>
-
-            <div class="form-row">
-              <span class="form-row-label">Änderung</span>
-              <textarea id="e-aenderung" placeholder="Entferne im Fazit den SEO-Meta-Block und strukturiere den Absatz mit Leerzeilen." style="min-height:100px"></textarea>
-            </div>
-          </div>
-
-          <button class="btn btn-green" id="edit-btn" onclick="sendEdit()">
-            <span class="spinner" id="edit-spinner"></span>
-            <span id="edit-label">Absenden</span>
-          </button>
-          <div class="status" id="edit-status"></div>
-
-          <div class="progress-section" id="edit-progress" style="display:none">
-            <div class="progress-header">
-              <span class="progress-label">Workflow läuft</span>
-              <div class="progress-meta">
-                <span id="edit-elapsed">0:00</span>
-                <span id="edit-pct">0%</span>
-              </div>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill green" id="edit-bar"></div>
-            </div>
-            <div class="progress-waiting" id="edit-waiting">Warte auf Abschluss-Signal...</div>
-            <div class="progress-done-msg green" id="edit-done">✓ Workflow abgeschlossen</div>
-          </div>
-        </div>
-
       </div>
     </div>
 
+  </main>
+
+  <!-- ── POPUP ── -->
+  <div class="modal-backdrop" id="success-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v5l3 2"></path>
+        </svg>
+      </div>
+      <h2 id="modal-title">Auftrag gesendet</h2>
+      <p>Der Workflow wurde gestartet. Es dauert <strong>ca. 20 Minuten</strong>, bis der Blog als Draft in <strong>Sanity</strong> landet.</p>
+      <button class="btn btn-primary" onclick="closeModal()">Verstanden</button>
+    </div>
   </div>
 
   <script>
@@ -649,7 +418,6 @@
     // Alle Credentials liegen in Netlify-Umgebungsvariablen (siehe Setup-Anleitung).
 
     let apiToken = null;
-    const progressState = {};
 
     // ── LOGIN ─────────────────────────────────────────────────
     document.getElementById('password').addEventListener('keydown', e => {
@@ -671,6 +439,7 @@
           apiToken = data.token;
           document.getElementById('login-view').style.display = 'none';
           document.getElementById('app-view').style.display  = 'block';
+          document.getElementById('logout-btn').style.display = 'inline-flex';
         } else {
           errEl.textContent = 'Falsches Passwort.';
           document.getElementById('password').value = '';
@@ -683,20 +452,22 @@
 
     function logout() {
       apiToken = null;
-      stopProgress('create');
-      stopProgress('edit');
-      clearStatus('create-status');
-      clearStatus('edit-status');
+      closeModal();
+      document.getElementById('create-error').textContent = '';
       document.getElementById('app-view').style.display  = 'none';
+      document.getElementById('logout-btn').style.display = 'none';
       document.getElementById('login-view').style.display = 'block';
       document.getElementById('password').value = '';
     }
 
     // ── SENDEN ───────────────────────────────────────────────
     async function sendCreate() {
+      const errEl = document.getElementById('create-error');
+      errEl.textContent = '';
+
       const thema = document.getElementById('c-thema').value.trim();
       if (!thema) {
-        showStatus('create-status', 'error', '✗ Blog-Thema ist erforderlich.');
+        errEl.textContent = '✗ Blog-Thema ist erforderlich.';
         return;
       }
 
@@ -717,168 +488,43 @@
         .filter(Boolean)
         .join('\n');
 
-      await sendToWebhook('create', message, 'success-blue', 20 * 60);
-    }
-
-    async function sendEdit() {
-      const titel    = document.getElementById('e-titel').value.trim();
-      const id       = document.getElementById('e-id').value.trim();
-      const aenderung = document.getElementById('e-aenderung').value.trim();
-
-      if (!titel && !id) {
-        showStatus('edit-status', 'error', '✗ Titel oder ID angeben.');
-        return;
-      }
-      if (titel && id) {
-        showStatus('edit-status', 'error', '✗ Nur Titel ODER ID ausfüllen – nicht beide.');
-        return;
-      }
-      if (!aenderung) {
-        showStatus('edit-status', 'error', '✗ Änderung fehlt.');
-        return;
-      }
-
-      const identifier = titel ? `Titel: "${titel}"` : `ID: "${id}"`;
-      const message = `${identifier}\n\n${aenderung}`;
-
-      await sendToWebhook('edit', message, 'success-green', 3 * 60);
-    }
-
-    async function sendToWebhook(type, message, successClass, durationSec) {
-      setLoading(type, true);
-      clearStatus(type + '-status');
+      setLoading(true);
       try {
         const res = await fetch('/.netlify/functions/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type, message, token: apiToken }),
+          body: JSON.stringify({ type: 'create', message, token: apiToken }),
         });
         if (res.ok) {
-          showStatus(type + '-status', successClass, '✓ Auftrag gesendet – Workflow läuft.');
-          startProgress(type, durationSec);
+          openModal();
         } else {
-          showStatus(type + '-status', 'error', '✗ Fehler beim Senden (Status ' + res.status + ').');
+          errEl.textContent = '✗ Fehler beim Senden (Status ' + res.status + ').';
         }
       } catch {
-        showStatus(type + '-status', 'error', '✗ Verbindung fehlgeschlagen.');
+        errEl.textContent = '✗ Verbindung fehlgeschlagen.';
       }
-      setLoading(type, false);
+      setLoading(false);
     }
 
-    // ── FORTSCHRITTSBALKEN ────────────────────────────────────
-    function startProgress(type, totalSec) {
-      stopProgress(type);
-
-      const startTime = Date.now();
-      progressState[type] = { startTime, totalSec, done: false, pollId: null, tickId: null };
-
-      const section  = document.getElementById(type + '-progress');
-      const bar      = document.getElementById(type + '-bar');
-      const pctEl    = document.getElementById(type + '-pct');
-      const elapsed  = document.getElementById(type + '-elapsed');
-      const waiting  = document.getElementById(type + '-waiting');
-      const doneMsg  = document.getElementById(type + '-done');
-
-      section.style.display  = 'block';
-      bar.classList.remove('complete');
-      bar.style.width        = '0%';
-      pctEl.textContent      = '0%';
-      elapsed.textContent    = '0:00';
-      waiting.style.display  = 'none';
-      doneMsg.style.display  = 'none';
-
-      progressState[type].tickId = setInterval(() => {
-        const state = progressState[type];
-        if (!state || state.done) return;
-
-        const elapsedSec = (Date.now() - state.startTime) / 1000;
-        const raw = elapsedSec / state.totalSec;
-        const pct = Math.min(raw * 95, 95);
-
-        bar.style.width   = pct.toFixed(1) + '%';
-        pctEl.textContent = Math.round(pct) + '%';
-
-        const m = Math.floor(elapsedSec / 60);
-        const s = Math.floor(elapsedSec % 60);
-        elapsed.textContent = `${m}:${s.toString().padStart(2, '0')}`;
-
-        if (pct >= 95 && waiting.style.display === 'none') {
-          waiting.style.display = 'block';
-        }
-      }, 1000);
-
-      // Polling startet nach 15 Sekunden
-      setTimeout(() => {
-        if (!progressState[type] || progressState[type].done) return;
-        progressState[type].pollId = setInterval(() => pollCompletion(type), 5000);
-      }, 15000);
+    // ── POPUP ─────────────────────────────────────────────────
+    function openModal() {
+      document.getElementById('success-modal').classList.add('open');
     }
-
-    function stopProgress(type) {
-      const state = progressState[type];
-      if (state) {
-        clearInterval(state.tickId);
-        clearInterval(state.pollId);
-      }
-      progressState[type] = null;
-      const section = document.getElementById(type + '-progress');
-      if (section) section.style.display = 'none';
+    function closeModal() {
+      document.getElementById('success-modal').classList.remove('open');
     }
-
-    async function pollCompletion(type) {
-      if (!apiToken) return;
-      const state = progressState[type];
-      if (!state || state.done) return;
-
-      try {
-        const res = await fetch(
-          `/.netlify/functions/poll-status?type=${type}&token=${encodeURIComponent(apiToken)}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (data.done) markDone(type);
-        }
-      } catch {
-        // Polling-Fehler still ignorieren
-      }
-    }
-
-    function markDone(type) {
-      const state = progressState[type];
-      if (!state || state.done) return;
-      state.done = true;
-      clearInterval(state.tickId);
-      clearInterval(state.pollId);
-
-      const bar     = document.getElementById(type + '-bar');
-      const pctEl   = document.getElementById(type + '-pct');
-      const waiting = document.getElementById(type + '-waiting');
-      const doneMsg = document.getElementById(type + '-done');
-
-      bar.classList.add('complete');
-      bar.style.width   = '100%';
-      pctEl.textContent = '100%';
-      waiting.style.display  = 'none';
-      doneMsg.style.display  = 'block';
-    }
+    document.getElementById('success-modal').addEventListener('click', e => {
+      if (e.target.id === 'success-modal') closeModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
 
     // ── UI-HELFER ─────────────────────────────────────────────
-    function setLoading(prefix, loading) {
-      document.getElementById(prefix + '-btn').disabled          = loading;
-      document.getElementById(prefix + '-spinner').style.display = loading ? 'block' : 'none';
-      document.getElementById(prefix + '-label').textContent     = loading ? 'Wird gesendet...' : 'Absenden';
-    }
-
-    function showStatus(id, type, msg) {
-      const el = document.getElementById(id);
-      el.className   = 'status ' + type;
-      el.textContent = msg;
-    }
-
-    function clearStatus(id) {
-      const el = document.getElementById(id);
-      el.className   = 'status';
-      el.textContent = '';
+    function setLoading(loading) {
+      document.getElementById('create-btn').disabled          = loading;
+      document.getElementById('create-spinner').style.display = loading ? 'block' : 'none';
+      document.getElementById('create-label').textContent     = loading ? 'Wird gesendet...' : 'Absenden';
     }
   </script>
 </body>
